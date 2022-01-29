@@ -1,29 +1,56 @@
 import { useState } from 'react'
+import { v4 as uuid } from 'uuid'
 
 import '../styles/tasklist.scss'
 
 import { FiTrash, FiCheckSquare } from 'react-icons/fi'
 
 interface Task {
-  id: number;
+  id: string; //Alterei aqui de number para string, pois estou usando uuid
   title: string;
   isComplete: boolean;
+}
+
+interface Event {
+  key: string;
 }
 
 export function TaskList() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  // Adiciona tarefa ao precionar "Enter"
+  const handleKeyPress = (event: Event) => {
+    if(event.key === 'Enter'){
+      handleCreateNewTask()
+    }
+  }
 
   function handleCreateNewTask() {
     // Crie uma nova task com um id random, não permita criar caso o título seja vazio.
+    //Com este "if" abaixo verificamos se o "input" está vazio, caso esteja não executa mais nada.
+    if (!newTaskTitle) return;
+    const newTask = {
+      id: uuid(),
+      title: newTaskTitle,
+      isComplete: false
+    }
+    setTasks(oldState => [...oldState, newTask]);
+    setNewTaskTitle('');
   }
 
-  function handleToggleTaskCompletion(id: number) {
+  function handleToggleTaskCompletion(id: string) {
     // Altere entre `true` ou `false` o campo `isComplete` de uma task com dado ID
+    const newTasks = tasks.map(task => task.id === id ? {
+      ...task,
+      isComplete: !task.isComplete
+    } : task);
+    setTasks(newTasks)
   }
 
-  function handleRemoveTask(id: number) {
+  function handleRemoveTask(id: string) {
     // Remova uma task da listagem pelo ID
+    const filteredTasks = tasks.filter(task => task.id !== id);
+    setTasks(filteredTasks)
   }
 
   return (
@@ -34,7 +61,8 @@ export function TaskList() {
         <div className="input-group">
           <input 
             type="text" 
-            placeholder="Adicionar nova tarefa" 
+            placeholder="Adicionar novo todo"
+            onKeyPress={handleKeyPress} //Adiciona todo ao precionar "Enter"
             onChange={(e) => setNewTaskTitle(e.target.value)}
             value={newTaskTitle}
           />
